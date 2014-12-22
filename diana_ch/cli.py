@@ -35,12 +35,36 @@ def process_thrust(joystick, tx, get_ship):
         print('IMP {} -> {}'.format(previous_thrust, thrust))
         tx(diana.packet.HelmSetImpulsePacket(thrust))
 
+def process_main_screen(joystick, tx, get_ship):
+    MainView = diana.packet.MainView
+    view = None
+    hat = SDL.SDL_JoystickGetHat(joystick, 0)
+    if hat in (SDL.SDL_HAT_UP, SDL.SDL_HAT_RIGHTUP, SDL.SDL_HAT_LEFTUP):
+        view = MainView.forward
+    elif hat in (SDL.SDL_HAT_DOWN, SDL.SDL_HAT_RIGHTDOWN, SDL.SDL_HAT_LEFTDOWN):
+        view = MainView.aft
+    elif hat == SDL.SDL_HAT_LEFT:
+        view = MainView.port
+    elif hat == SDL.SDL_HAT_RIGHT:
+        view = MainView.starboard
+    elif SDL.SDL_JoystickGetButton(joystick, 1):
+        view = MainView.status
+    elif SDL.SDL_JoystickGetButton(joystick, 2):
+        view = MainView.tactical
+    elif SDL.SDL_JoystickGetButton(joystick, 3):
+        view = MainView.lrs
+    previous_view = get_ship().get('main-view')
+    if view != previous_view and view is not None:
+        print('MV {} -> {}'.format(previous_view, view))
+        tx(diana.packet.SetMainScreenPacket(view))
+
 def process_frame(joystick, tx, get_ship):
     for event in SDLE.get_events():
         if event.type == SDL.SDL_QUIT:
             exit(0)
     process_yaw(joystick, tx, get_ship)
     process_thrust(joystick, tx, get_ship)
+    process_main_screen(joystick, tx, get_ship)
     time.sleep(1 / 15)
 
 def main():
