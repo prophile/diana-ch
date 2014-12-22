@@ -9,11 +9,11 @@ from setuptools import setup, find_packages
 with open('README.md') as f:
     description = f.read()
 
-from diana_ch import VERSION
+from diana_ch import VERSION, SHORT_DESCRIPTION
 
 setup(name='diana-ch',
       version=VERSION,
-      description='Program for interacting with Artemis SBS with a CH Products Yoke',
+      description=SHORT_DESCRIPTION,
       author='Alistair Lynn',
       author_email='arplynn@gmail.com',
       license="MIT",
