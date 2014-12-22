@@ -121,12 +121,13 @@ def process_reverse(joystick, tx, get_ship):
     if joystick.button(10) and reverse:
         tx(diana.packet.HelmToggleReversePacket())
 
-def process_frame(joystick, tx, get_ship):
+def process_frame(joystick, tx, get_ship, args):
     for event in SDLE.get_events():
         if event.type == SDL.SDL_QUIT:
             exit(0)
     process_yaw(joystick, tx, get_ship)
-    process_pitch(joystick, tx, get_ship)
+    if args.enable_pitch:
+        process_pitch(joystick, tx, get_ship)
     process_thrust(joystick, tx, get_ship)
     process_main_screen(joystick, tx, get_ship)
     process_shields(joystick, tx, get_ship)
@@ -147,6 +148,9 @@ def main():
                         type=int,
                         default=0,
                         nargs='?')
+    parser.add_argument('--enable-pitch',
+                        help='Turn on pitch control',
+                        action='store_true')
     args = parser.parse_args()
 
     SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK)
@@ -175,5 +179,5 @@ def main():
     launch_thread(handle_input)
 
     while True:
-        process_frame(joystick, tx, lambda: track.player_ship)
+        process_frame(joystick, tx, lambda: track.player_ship, args)
 
