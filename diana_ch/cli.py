@@ -121,6 +121,18 @@ def process_reverse(joystick, tx, get_ship):
     if joystick.button(10) and reverse:
         tx(diana.packet.HelmToggleReversePacket())
 
+def process_dock_rq(joystick, tx, get_ship):
+    if joystick.button(9):
+        tx(diana.packet.HelmRequestDockPacket())
+
+def process_warp(joystick, tx, get_ship):
+    warp_reading = (1 + joystick.axis(3, LEVER)) / 2
+    warp = int(warp_reading * 4)
+    previous_warp = get_ship().get('warp')
+    if warp != previous_warp:
+        print('WRP {} -> {}'.format(previous_warp, warp))
+        tx(diana.packet.HelmSetWarpPacket(warp))
+
 def process_frame(joystick, tx, get_ship, args):
     for event in SDLE.get_events():
         if event.type == SDL.SDL_QUIT:
@@ -128,11 +140,14 @@ def process_frame(joystick, tx, get_ship, args):
     process_yaw(joystick, tx, get_ship)
     if args.enable_pitch:
         process_pitch(joystick, tx, get_ship)
+    if args.enable_warp:
+        process_warp(joystick, tx, get_ship)
     process_thrust(joystick, tx, get_ship)
     process_main_screen(joystick, tx, get_ship)
     process_shields(joystick, tx, get_ship)
     process_red_alert(joystick, tx, get_ship)
     process_reverse(joystick, tx, get_ship)
+    process_dock_rq(joystick, tx, get_ship)
     time.sleep(1 / 15)
 
 def main():
@@ -150,6 +165,9 @@ def main():
                         nargs='?')
     parser.add_argument('--enable-pitch',
                         help='Turn on pitch control',
+                        action='store_true')
+    parser.add_argument('--enable-warp',
+                        help='Turn on warp lever',
                         action='store_true')
     args = parser.parse_args()
 
