@@ -57,6 +57,8 @@ def process_main_screen(joystick, tx, get_ship):
     if view != previous_view and view is not None:
         print('MV {} -> {}'.format(previous_view, view))
         tx(diana.packet.SetMainScreenPacket(view))
+    if SDL.SDL_JoystickGetButton(joystick, 0):
+        tx(diana.packet.TogglePerspectivePacket())
 
 def process_frame(joystick, tx, get_ship):
     for event in SDLE.get_events():
