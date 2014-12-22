@@ -1,5 +1,5 @@
-libdiana
+diana-ch
 ========
 
-A library for talking to Artemis SBS servers.
+A program for driving Artemis SBS ships with a CH Products yoke.
 
