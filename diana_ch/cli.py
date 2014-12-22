@@ -20,10 +20,6 @@ YAW = JoystickMapping(min=-32768, centre=-4241, max=28398, dead_zone=0.05)
 def process_yaw(joystick, tx, get_ship):
     yaw_reading = SDL.SDL_JoystickGetAxis(joystick, 0)
     yaw = YAW.evaluate(yaw_reading)
-    if yaw < -1:
-        print("Out-of-bounds low mark, reading={}".format(yaw_reading))
-    if yaw > 1:
-        print("Out-of-bounds high mark, reading={}".format(yaw_reading))
     rudder = (yaw + 1) / 2
     previous_rudder = get_ship().get('rudder')
     if previous_rudder != rudder:
