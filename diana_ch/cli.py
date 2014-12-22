@@ -20,9 +20,37 @@ YAW = JoystickMapping(min=-32768, centre=-4241, max=28398, dead_zone=0.05)
 PITCH = JoystickMapping(min=-32511, centre=-10152, max=29940, dead_zone=0.15)
 LEVER = JoystickMapping(min=32767, max=-32768)
 
+LINEAR = JoystickMapping(min=-1, max=1)
+
+class Joystick:
+    def __init__(self, raw):
+        self.raw = raw
+        self._pressed = [False] * SDL.SDL_JoystickNumButtons(raw)
+
+    def update(self):
+        pass
+
+    def axis(self, axis, mapping=LINEAR):
+        reading = SDL.SDL_JoystickGetAxis(self.raw, axis)
+        return mapping.evaluate(reading)
+
+    def hat(self, index=0):
+        return SDL.SDL_JoystickGetHat(self.raw, index)
+
+    def button(self, index=0):
+        state = SDL.SDL_JoystickGetButton(self.raw, index)
+        if state == False:
+            self._pressed[index] = False
+            return False
+        if state == True:
+            if self._pressed[index]:
+                return False
+            else:
+                self._pressed[index] = True
+                return True
+
 def process_yaw(joystick, tx, get_ship):
-    yaw_reading = SDL.SDL_JoystickGetAxis(joystick, 0)
-    yaw = YAW.evaluate(yaw_reading)
+    yaw = joystick.axis(0, YAW)
     rudder = (yaw + 1) / 2
     previous_rudder = get_ship().get('rudder')
     if previous_rudder != rudder:
@@ -31,8 +59,7 @@ def process_yaw(joystick, tx, get_ship):
 
 def process_pitch(joystick, tx, get_ship):
     previous_pitch = get_ship().get('pitch', 0)
-    pitch_reading = SDL.SDL_JoystickGetAxis(joystick, 1)
-    pitch = PITCH.evaluate(pitch_reading)
+    pitch = joystick.axis(1, PITCH)
     pitch_error = pitch - previous_pitch
     if pitch_error > 0 and random.random() < pitch_error:
         tx(diana.packet.ClimbDivePacket(1))
@@ -42,8 +69,7 @@ def process_pitch(joystick, tx, get_ship):
         print('Pitch DOWN')
 
 def process_thrust(joystick, tx, get_ship):
-    thrust_reading = SDL.SDL_JoystickGetAxis(joystick, 2)
-    thrust = (1 + LEVER.evaluate(thrust_reading)) / 2
+    thrust = (1 + joystick.axis(2, LEVER)) / 2
     previous_thrust = get_ship().get('impulse', None)
     if thrust != previous_thrust:
         print('IMP {} -> {}'.format(previous_thrust, thrust))
@@ -52,7 +78,7 @@ def process_thrust(joystick, tx, get_ship):
 def process_main_screen(joystick, tx, get_ship):
     MainView = diana.packet.MainView
     view = None
-    hat = SDL.SDL_JoystickGetHat(joystick, 0)
+    hat = joystick.hat()
     if hat in (SDL.SDL_HAT_UP, SDL.SDL_HAT_RIGHTUP, SDL.SDL_HAT_LEFTUP):
         view = MainView.forward
     elif hat in (SDL.SDL_HAT_DOWN, SDL.SDL_HAT_RIGHTDOWN, SDL.SDL_HAT_LEFTDOWN):
@@ -61,17 +87,17 @@ def process_main_screen(joystick, tx, get_ship):
         view = MainView.port
     elif hat == SDL.SDL_HAT_RIGHT:
         view = MainView.starboard
-    elif SDL.SDL_JoystickGetButton(joystick, 1):
+    elif joystick.button(1):
         view = MainView.status
-    elif SDL.SDL_JoystickGetButton(joystick, 2):
+    elif joystick.button(2):
         view = MainView.tactical
-    elif SDL.SDL_JoystickGetButton(joystick, 3):
+    elif joystick.button(3):
         view = MainView.lrs
     previous_view = get_ship().get('main-view')
     if view != previous_view and view is not None:
         print('MV {} -> {}'.format(previous_view, view))
         tx(diana.packet.SetMainScreenPacket(view))
-    if SDL.SDL_JoystickGetButton(joystick, 0):
+    if joystick.button(0):
         tx(diana.packet.TogglePerspectivePacket())
 
 def process_frame(joystick, tx, get_ship):
@@ -103,7 +129,7 @@ def main():
     for joy in range(SDL.SDL_NumJoysticks()):
         name = SDL.SDL_JoystickNameForIndex(joy)
         if name == b'CH FLIGHT SIM YOKE USB':
-            joystick = SDL.SDL_JoystickOpen(joy)
+            joystick = Joystick(SDL.SDL_JoystickOpen(joy))
             break
     else:
         print('Could not find yoke.')
