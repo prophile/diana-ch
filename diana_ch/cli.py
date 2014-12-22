@@ -16,6 +16,7 @@ def launch_thread(fn):
     target.start()
 
 YAW = JoystickMapping(min=-32768, centre=-4241, max=28398, dead_zone=0.05)
+LEVER = JoystickMapping(min=32767, max=-32768)
 
 def process_yaw(joystick, tx, get_ship):
     yaw_reading = SDL.SDL_JoystickGetAxis(joystick, 0)
@@ -26,11 +27,20 @@ def process_yaw(joystick, tx, get_ship):
         print('RDR {} -> {}'.format(previous_rudder, rudder))
         tx(diana.packet.HelmSetSteeringPacket(rudder))
 
+def process_thrust(joystick, tx, get_ship):
+    thrust_reading = SDL.SDL_JoystickGetAxis(joystick, 2)
+    thrust = (1 + LEVER.evaluate(thrust_reading)) / 2
+    previous_thrust = get_ship().get('impulse', None)
+    if thrust != previous_thrust:
+        print('IMP {} -> {}'.format(previous_thrust, thrust))
+        tx(diana.packet.HelmSetImpulsePacket(thrust))
+
 def process_frame(joystick, tx, get_ship):
     for event in SDLE.get_events():
         if event.type == SDL.SDL_QUIT:
             exit(0)
     process_yaw(joystick, tx, get_ship)
+    process_thrust(joystick, tx, get_ship)
     time.sleep(1 / 15)
 
 def main():
