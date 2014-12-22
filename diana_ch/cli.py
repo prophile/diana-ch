@@ -1,4 +1,5 @@
 import threading
+import random
 from diana import connect
 import diana.packet
 from diana.tracking import Tracker
@@ -16,6 +17,7 @@ def launch_thread(fn):
     target.start()
 
 YAW = JoystickMapping(min=-32768, centre=-4241, max=28398, dead_zone=0.05)
+PITCH = JoystickMapping(min=-32511, centre=-10152, max=29940, dead_zone=0.15)
 LEVER = JoystickMapping(min=32767, max=-32768)
 
 def process_yaw(joystick, tx, get_ship):
@@ -26,6 +28,19 @@ def process_yaw(joystick, tx, get_ship):
     if previous_rudder != rudder:
         print('RDR {} -> {}'.format(previous_rudder, rudder))
         tx(diana.packet.HelmSetSteeringPacket(rudder))
+
+def process_pitch(joystick, tx, get_ship):
+    previous_pitch = get_ship().get('pitch', 0)
+    pitch_reading = SDL.SDL_JoystickGetAxis(joystick, 1)
+    pitch = PITCH.evaluate(pitch_reading)
+    pitch_error = pitch - previous_pitch
+    print('PITCH old={} new={} error={}'.format(previous_pitch, pitch, pitch_error))
+    if pitch_error > 0 and random.random() < pitch_error:
+        tx(diana.packet.ClimbDivePacket(1))
+        print('Pitch UP')
+    if pitch_error < 0 and random.random() < -pitch_error:
+        tx(diana.packet.ClimbDivePacket(-1))
+        print('Pitch DOWN')
 
 def process_thrust(joystick, tx, get_ship):
     thrust_reading = SDL.SDL_JoystickGetAxis(joystick, 2)
@@ -65,6 +80,7 @@ def process_frame(joystick, tx, get_ship):
         if event.type == SDL.SDL_QUIT:
             exit(0)
     process_yaw(joystick, tx, get_ship)
+    process_pitch(joystick, tx, get_ship)
     process_thrust(joystick, tx, get_ship)
     process_main_screen(joystick, tx, get_ship)
     time.sleep(1 / 15)
