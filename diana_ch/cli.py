@@ -100,6 +100,20 @@ def process_main_screen(joystick, tx, get_ship):
     if joystick.button(0):
         tx(diana.packet.TogglePerspectivePacket())
 
+def process_shields(joystick, tx, get_ship):
+    shields = get_ship().get('shields-state', False)
+    if joystick.button(4) and not shields:
+        tx(diana.packet.ToggleShieldsPacket())
+    if joystick.button(5) and shields:
+        tx(diana.packet.ToggleShieldsPacket())
+
+def process_reverse(joystick, tx, get_ship):
+    reverse = get_ship().get('shields-state', False)
+    if joystick.button(11) and not reverse:
+        tx(diana.packet.HelmToggleReversePacket())
+    if joystick.button(10) and reverse:
+        tx(diana.packet.HelmToggleReversePacket())
+
 def process_frame(joystick, tx, get_ship):
     for event in SDLE.get_events():
         if event.type == SDL.SDL_QUIT:
@@ -108,6 +122,8 @@ def process_frame(joystick, tx, get_ship):
     process_pitch(joystick, tx, get_ship)
     process_thrust(joystick, tx, get_ship)
     process_main_screen(joystick, tx, get_ship)
+    process_shields(joystick, tx, get_ship)
+    process_reverse(joystick, tx, get_ship)
     time.sleep(1 / 15)
 
 def main():
