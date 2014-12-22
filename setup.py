@@ -21,7 +21,10 @@ setup(name='diana-ch',
       url='https://github.com/prophile/diana-ch',
       zip_safe=True,
       setup_requires=['nose >=1, <2'],
-      install_requires=['libdiana >=0.0.6, <0.1'],
+      install_requires=[
+          'libdiana >=0.0.6, <0.1',
+          'PySDL2 >=0.9.3, <1'
+      ],
       entry_points={'console_scripts': [
           'dianach=diana_ch.cli:main'
       ]},
