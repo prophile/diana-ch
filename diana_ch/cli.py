@@ -108,7 +108,7 @@ def process_shields(joystick, tx, get_ship):
         tx(diana.packet.ToggleShieldsPacket())
 
 def process_reverse(joystick, tx, get_ship):
-    reverse = get_ship().get('shields-state', False)
+    reverse = get_ship().get('reverse', False)
     if joystick.button(11) and not reverse:
         tx(diana.packet.HelmToggleReversePacket())
     if joystick.button(10) and reverse:
