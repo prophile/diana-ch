@@ -100,11 +100,18 @@ def process_main_screen(joystick, tx, get_ship):
     if joystick.button(0):
         tx(diana.packet.TogglePerspectivePacket())
 
+def process_red_alert(joystick, tx, get_ship):
+    red_alert = get_ship().get('red-alert', False)
+    if joystick.button(4) and not red_alert:
+        tx(diana.packet.ToggleRedAlertPacket())
+    if joystick.button(5) and red_alert:
+        tx(diana.packet.ToggleRedAlertPacket())
+
 def process_shields(joystick, tx, get_ship):
     shields = get_ship().get('shields-state', False)
-    if joystick.button(4) and not shields:
+    if joystick.button(6) and not shields:
         tx(diana.packet.ToggleShieldsPacket())
-    if joystick.button(5) and shields:
+    if joystick.button(7) and shields:
         tx(diana.packet.ToggleShieldsPacket())
 
 def process_reverse(joystick, tx, get_ship):
@@ -123,6 +130,7 @@ def process_frame(joystick, tx, get_ship):
     process_thrust(joystick, tx, get_ship)
     process_main_screen(joystick, tx, get_ship)
     process_shields(joystick, tx, get_ship)
+    process_red_alert(joystick, tx, get_ship)
     process_reverse(joystick, tx, get_ship)
     time.sleep(1 / 15)
 
