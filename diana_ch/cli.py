@@ -34,7 +34,6 @@ def process_pitch(joystick, tx, get_ship):
     pitch_reading = SDL.SDL_JoystickGetAxis(joystick, 1)
     pitch = PITCH.evaluate(pitch_reading)
     pitch_error = pitch - previous_pitch
-    print('PITCH old={} new={} error={}'.format(previous_pitch, pitch, pitch_error))
     if pitch_error > 0 and random.random() < pitch_error:
         tx(diana.packet.ClimbDivePacket(1))
         print('Pitch UP')
